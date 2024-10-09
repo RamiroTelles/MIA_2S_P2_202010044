@@ -1,0 +1,54 @@
+#CREACION DE DISCOS------------------------------------------------
+Mkdisk -size=20 -unit=m -path=./discos/disco1.mia
+
+
+#CREACION DE PARTICION------------------------------------------------
+fdisk -type=P -unit=K -name=Part1 -size=7680 -path=./discos/disco1.mia -fit=BF
+
+
+#MOUNT------------------------------------------------
+mount -path=./discos/disco1.mia -name=Part1 
+
+
+#CREACION DE SISTEMA DE ARCHIVOS------------------------------------------------
+mkfs -type=full -id=441a 
+
+login -user=root -pass=123 -id=441a
+
+login -user=root -pass=123 -id=441a #ERR SESION INICIADA
+
+cat -file1=/users.txt 
+
+#CREACION DE CARPETAS------------------------------------------------
+mkdir -path=/bin
+mkdir -path=/boot
+mkdir -path=/cdrom
+mkdir -path=/home
+
+
+mkdir -path=/home/archivos
+mkdir -path=/home/archivos/user
+mkdir -path=/home/archivos/user/docs
+mkdir -path=/home/archivos/user/docs/usac
+
+mkfile -path=/home/archivos/user/docs/Tarea.txt -size=75
+#mkfile -path=/home/archivos/user/docs/Tarea2.txt -size=767
+
+mkfile -path=/home/archivos/user/docs/Tarea3.txt -size=10 -cont=./archivoFIle.txt
+
+cat -file1=/home/archivos/user/docs/Tarea.txt -file2=/home/archivos/user/docs/Tarea3.txt
+cat -file1=/home/archivos/user/docs/Tarea.txt
+
+
+#logout
+#logout
+
+
+#EXT2------------------------------------------------
+#------------------------REPORTES 1----------------
+rep -id=441a -path=./reportes/sb1.png -name=sb
+rep -id=441a -path=./reportes/inode1.png -name=inode
+rep -id=441a -path=./reportes/block1.png -name=block
+rep -id=441a -path=./reportes/bm_inode1.txt -name=bm_inode
+rep -id=441a -path=./reportes/bm_bloc1.txt -name=bm_bloc
+
