@@ -1048,7 +1048,7 @@ func crearDirectorio(ruta string, index int, archivo *os.File, sblock *superBloq
 		newInodo.I_block[i] = -1
 	}
 
-	newInodo.I_type = [1]byte{'1'}
+	newInodo.I_type = [1]byte{'0'}
 	newInodo.I_perm = [3]byte{'6', '6', '4'}
 
 	var newBloqueCarpeta bloqueCarpeta
@@ -1056,7 +1056,7 @@ func crearDirectorio(ruta string, index int, archivo *os.File, sblock *superBloq
 	copy(newBloqueCarpeta.B_content[0].B_name[:], ".")
 	newBloqueCarpeta.B_content[0].B_inodo = sblock.S_firts_ino
 
-	copy(newBloqueCarpeta.B_content[0].B_name[:], "..")
+	copy(newBloqueCarpeta.B_content[1].B_name[:], "..")
 	newBloqueCarpeta.B_content[1].B_inodo = int32(numInodo)
 
 	newBloqueCarpeta.B_content[2].B_inodo = -1
@@ -1645,7 +1645,7 @@ func rellenarBloque(numInodo int, nombre string, archivo *os.File, sblock *super
 				var newBloqueCarpeta bloqueCarpeta
 				copy(newBloqueCarpeta.B_content[0].B_name[:], nombre)
 				newBloqueCarpeta.B_content[0].B_inodo = sblock.S_firts_ino
-				temp := sblock.S_firts_ino
+				temp := sblock.S_first_blo
 				newBloqueCarpeta.B_content[1].B_inodo = -1
 				newBloqueCarpeta.B_content[2].B_inodo = -1
 				newBloqueCarpeta.B_content[3].B_inodo = -1
@@ -1659,7 +1659,7 @@ func rellenarBloque(numInodo int, nombre string, archivo *os.File, sblock *super
 				}
 
 				newBloquePuntero1.B_pointers[0] = temp
-				temp = sblock.S_firts_ino
+				temp = sblock.S_first_blo
 				escribir_nuevoBloque_a(archivo, sblock, &newBloquePuntero1)
 
 				var newBloquePuntero2 bloqueApuntadores
@@ -1668,7 +1668,7 @@ func rellenarBloque(numInodo int, nombre string, archivo *os.File, sblock *super
 					newBloquePuntero2.B_pointers[i] = -1
 				}
 				newBloquePuntero1.B_pointers[0] = temp
-				temp = sblock.S_firts_ino
+				temp = sblock.S_first_blo
 
 				escribir_nuevoBloque_a(archivo, sblock, &newBloquePuntero2)
 
@@ -1678,7 +1678,7 @@ func rellenarBloque(numInodo int, nombre string, archivo *os.File, sblock *super
 					newBloquePuntero3.B_pointers[i] = -1
 				}
 				newBloquePuntero1.B_pointers[0] = temp
-				temp = sblock.S_firts_ino
+				temp = sblock.S_first_blo
 
 				escribir_nuevoBloque_a(archivo, sblock, &newBloquePuntero3)
 
@@ -1700,7 +1700,7 @@ func rellenarBloque(numInodo int, nombre string, archivo *os.File, sblock *super
 				var newBloqueCarpeta bloqueCarpeta
 				copy(newBloqueCarpeta.B_content[0].B_name[:], nombre)
 				newBloqueCarpeta.B_content[0].B_inodo = sblock.S_firts_ino
-				temp := sblock.S_firts_ino
+				temp := sblock.S_first_blo
 
 				newBloqueCarpeta.B_content[1].B_inodo = -1
 				newBloqueCarpeta.B_content[2].B_inodo = -1
@@ -2484,6 +2484,166 @@ func RepBloques(index int, path string) {
 	Dot += "}"
 
 	crearArchivoDot(path, Dot)
+}
+
+func RepTree(index int, path string) {
+
+	//Abrir el disco
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0664)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	//Leer el superbloque
+	var sb superBloque
+	err = binary.Read(archivo, binary.LittleEndian, &sb)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+
+	//Buscar el inodo raiz
+	var raiz Inodo
+	archivo.Seek(int64(sb.S_inode_start), 0)
+	binary.Read(archivo, binary.LittleEndian, &raiz)
+	Dot := "digraph H {\n"
+	Dot += "node [pad=\"0.5\", nodesep=\"0.5\", ranksep=\"1\"];\n"
+	Dot += "node [shape=plaintext];\n"
+	Dot += "graph [bb=\"0,0,352,154\"];\n"
+	Dot += "rankdir=LR;\n"
+	Dot += crearDotNodoTree(0, archivo, sb)
+	Dot += "}"
+
+	// archivoDot, err := os.Create("reporteTree.dot")
+	// if err != nil {
+	// 	fmt.Println("Error al crear el archivo .dot: ", err)
+	// 	return
+	// }
+	// defer archivoDot.Close()
+
+	// _, err = archivoDot.WriteString(Dot)
+	// if err != nil {
+	// 	fmt.Println("Error al escribir el archivo .dot: ", err)
+	// 	return
+	// }
+
+	// cmd := exec.Command("dot", "-T", "png", "reporteTree.dot", "-o", "reporteTree.png")
+
+	// err = cmd.Run()
+	// if err != nil {
+	// 	fmt.Println("Error al generar la imagen: ", err)
+	// 	return
+	// }
+
+	// fmt.Println("Reporte generado con exito")
+
+	crearArchivoDot(path, Dot)
+
+}
+
+func crearDotNodoTree(numInodo int, archivo *os.File, sblock superBloque) string {
+	var inodoTemp Inodo
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))*int32(numInodo)), 0)
+
+	err := binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo")
+		return ""
+	}
+
+	Dot := "inodo" + strconv.Itoa(numInodo) + "[label = <\n"
+	Dot += "<TABLE border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n"
+	Dot += "<tr><td bgcolor=\"lightgrey\" colspan=\"2\">Inodo" + strconv.Itoa(numInodo) + "</td></tr>\n"
+	Dot += "<tr><td>i_uid</td><td>" + strconv.Itoa(int(inodoTemp.I_uid)) + "</td></tr>\n"
+	Dot += "<tr><td>i_gid</td><td>" + strconv.Itoa(int(inodoTemp.I_gid)) + "</td></tr>\n"
+	Dot += "<tr><td>i_size</td><td>" + strconv.Itoa(int(inodoTemp.I_s)) + "</td></tr>\n"
+	Dot += "<tr><td>i_atime</td><td>" + string(inodoTemp.I_atime[:]) + "</td></tr>\n"
+	Dot += "<tr><td>i_ctime</td><td>" + string(inodoTemp.I_ctime[:]) + "</td></tr>\n"
+	Dot += "<tr><td>i_mtime</td><td>" + string(inodoTemp.I_mtime[:]) + "</td></tr>\n"
+	Dot += "<tr><td>i_type</td><td>" + string(inodoTemp.I_type[:]) + "</td></tr>\n"
+	Dot += "<tr><td>i_perm</td><td>" + string(inodoTemp.I_perm[:]) + "</td></tr>\n"
+	nodosDot := ""
+	enlacesDot := ""
+	for i, ptr := range inodoTemp.I_block {
+		Dot += "<TR><TD bgcolor=\"lightgrey\">I_block[" + strconv.Itoa(i) + "]</TD><TD port='" + strconv.Itoa(i) + "'>" + strconv.Itoa(int(ptr)) + "</TD></TR>\n"
+		if ptr != -1 {
+
+			enlacesDot += "inodo" + strconv.Itoa(numInodo) + ":" + strconv.Itoa(i) + " -> bloque" + strconv.Itoa(int(ptr)) + ";\n"
+
+			nodosDot += crearDotBloqueTree(int(ptr), string(inodoTemp.I_type[:]), archivo, sblock)
+		}
+
+	}
+	Dot += "</TABLE>>];\n"
+	Dot += nodosDot
+	Dot += enlacesDot
+
+	return Dot
+}
+
+func crearDotBloqueTree(ptr int, tipo string, archivo *os.File, sblock superBloque) string {
+	Dot := ""
+	if strings.Contains(tipo, "1") {
+		var bloqueT bloqueArchivos
+		archivo.Seek(int64(sblock.S_block_start+int32(binary.Size(bloqueArchivos{}))*int32(ptr)), 0)
+
+		err := binary.Read(archivo, binary.LittleEndian, &bloqueT)
+
+		if err != nil {
+			fmt.Println("Error al leer el inodo")
+			return ""
+		}
+
+		Dot += "bloque"
+		Dot += strconv.Itoa(ptr)
+		Dot += "[shape=none, color=lightgrey, label=<\n<TABLE cellspacing=\"3\" cellpadding=\"2\" style=\"rounded\" >\n"
+		Dot += "<TR><TD bgcolor=\"lightgrey\" colspan=\"2\">bloque " + strconv.Itoa(ptr) + "</TD></TR>\n"
+		cont := strings.TrimRight(string(bloqueT.B_content[:]), string(rune(0)))
+		Dot += "<TR><TD bgcolor=\"lightgrey\" colspan=\"2\">" + cont + "</TD></TR>\n"
+
+		Dot += "</TABLE>>];\n"
+
+	} else {
+		var bloqueT bloqueCarpeta
+		archivo.Seek(int64(sblock.S_block_start+int32(binary.Size(bloqueArchivos{}))*int32(ptr)), 0)
+
+		err := binary.Read(archivo, binary.LittleEndian, &bloqueT)
+
+		if err != nil {
+			fmt.Println("Error al leer el inodo")
+			return ""
+		}
+
+		Dot += "bloque"
+		Dot += strconv.Itoa(ptr)
+		Dot += "[shape=none, color=lightgrey, label=<\n<TABLE cellspacing=\"3\" cellpadding=\"2\" style=\"rounded\" >\n"
+		Dot += "<TR><TD bgcolor=\"lightgrey\" colspan=\"2\">bloque " + strconv.Itoa(ptr) + "</TD></TR>\n"
+
+		Dot += "<TR><TD bgcolor=\"lightgrey\">b_name</TD><TD>b_inodo</TD></TR>\n"
+		enlacesDot := ""
+		nodosDot := ""
+		for i, cont := range bloqueT.B_content {
+
+			nam := strings.TrimRight(string(cont.B_name[:]), string(rune(0)))
+			Dot += "<TR><TD bgcolor=\"lightgrey\">" + nam + "</TD><TD port= '" + strconv.Itoa(i) + "'>" + strconv.Itoa(int(cont.B_inodo)) + "</TD></TR>\n"
+
+			if cont.B_inodo != -1 {
+				if nam != "." && nam != ".." {
+					nodosDot += crearDotNodoTree(int(cont.B_inodo), archivo, sblock)
+					enlacesDot += "bloque" + strconv.Itoa(ptr) + ":" + strconv.Itoa(i) + " -> inodo" + strconv.Itoa(int(cont.B_inodo)) + ";\n"
+				}
+			}
+
+		}
+		Dot += "</TABLE>>];\n"
+		Dot += nodosDot
+		Dot += enlacesDot
+	}
+
+	return Dot
 }
 
 func crearArchivoDot(path string, Dot string) {

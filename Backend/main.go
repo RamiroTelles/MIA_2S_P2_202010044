@@ -10,11 +10,11 @@ import (
 
 func main() {
 
-	analizador.InitApp()
-	// analizador.Analizar("execute -path=./basico.smia")
-	// for {
-	// 	leerComando()
-	// }
+	//analizador.InitApp()
+	analizador.Analizar("execute -path=./basico.smia")
+	for {
+		leerComando()
+	}
 
 	// dir, err := filepath.Abs("./carpeta/disco2.dsk")
 

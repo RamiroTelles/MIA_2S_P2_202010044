@@ -206,6 +206,15 @@ func EjecRep(banderas []string) {
 	case "ls":
 		//reporte ls
 		break
+	case "tree":
+		index := comandos.VerificarParticionMontada(id)
+		if index == -1 {
+			fmt.Println("Id no encontrada")
+			comandos.Salida_comando += "Id no encontrada\n"
+			return
+		}
+		comandos.RepTree(index, path)
+		break
 
 	default:
 		fmt.Println("nombre no valido")
