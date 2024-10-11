@@ -1321,6 +1321,469 @@ func crearArchivo(ruta string, cont string, r bool, index int) {
 	archivo.Close()
 }
 
+func editarArchivo(index int, ruta string, cont string) {
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	var sblock superBloque
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+
+	var numInodo int
+	if ruta == "/" {
+		numInodo = 0
+	} else {
+		lRuta := strings.Split(ruta[1:], "/")
+
+		numInodo = obtenerNumInodo(lRuta, archivo, &sblock)
+	}
+
+	eliminarBloquesInodo(numInodo, &sblock, archivo)
+
+	var inodoTemp Inodo
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))*int32(numInodo)), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		return
+	}
+
+	//escribo el nuevo contenido
+	escribir_archivo(archivo, &sblock, &inodoTemp, cont)
+	inodoTemp.I_s = int32(len(cont))
+
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(inodo{}))*int32(numInodo)), 0)
+	err = binary.Write(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al escribir el inodo: ", err)
+		return
+	}
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Write(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al escribir el superbloque: ", err)
+		return
+	}
+
+	archivo.Close()
+
+}
+
+func EjecMkUsr(banderas []string) {
+	name := ""
+	pass := ""
+	group := ""
+	for _, valor := range banderas {
+		dupla := strings.Split(valor, "=")
+
+		if dupla[0] == "-user" {
+			name = dupla[1]
+
+		} else if dupla[0] == "-pass" {
+			pass = dupla[1]
+
+		} else if dupla[0] == "-grp" {
+			group = dupla[1]
+
+		} else {
+			fmt.Println("Parametro invalido")
+		}
+	}
+
+	if name == "" {
+		fmt.Println("Ingrese el campo -name")
+		return
+	}
+
+	if pass == "" {
+		fmt.Println("Ingrese el campo -pass")
+		return
+	}
+
+	if group == "" {
+		fmt.Println("Ingrese el campo -grp")
+		return
+	}
+
+	if uId != 1 {
+		fmt.Println("Solo el usuario root puede crear usuarios")
+	}
+
+	index := VerificarParticionMontada(actualIdMount)
+
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	var sblock superBloque
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+
+	var inodoTemp Inodo
+
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		return
+	}
+
+	txt := leerArchivo("/users.txt", archivo, &sblock)
+	nexId := nextIdUser(txt)
+
+	txt += strconv.Itoa(nexId) + ",U," + group + "," + name + "," + pass + "\n"
+
+	archivo.Close()
+	editarArchivo(index, "/users.txt", txt)
+
+	fmt.Println("Grupo creado con exito")
+
+}
+
+func EjecRmUsr(banderas []string) {
+	name := ""
+	for _, valor := range banderas {
+		dupla := strings.Split(valor, "=")
+
+		if dupla[0] == "-user" {
+			name = dupla[1]
+
+		} else {
+			fmt.Println("Parametro invalido")
+		}
+	}
+
+	if name == "" {
+		fmt.Println("Ingrese el campo -name")
+		return
+	}
+
+	if uId != 1 {
+		fmt.Println("Solo el usuario root puede eliminar usuarios")
+	}
+
+	index := VerificarParticionMontada(actualIdMount)
+
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	var sblock superBloque
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+
+	var inodoTemp Inodo
+
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		return
+	}
+
+	txt := leerArchivo("/users.txt", archivo, &sblock)
+
+	lineas := strings.Split(txt, "\n")
+	lineas = lineas[:len(lineas)-1]
+
+	band := false
+	for i, linea := range lineas {
+
+		if linea[2] == 'U' && linea[0] != '0' {
+			campos := strings.Split(linea, ",")
+			if campos[3] == name {
+				nuevaLinea := []byte(linea)
+				nuevaLinea[0] = '0'
+				lineas[i] = string(nuevaLinea)
+				band = true
+				break
+
+			}
+		}
+
+	}
+
+	newTxt := ""
+	for _, linea := range lineas {
+
+		newTxt += linea + "\n"
+
+	}
+
+	if !band {
+		fmt.Println("No se encontro el Usuario")
+		return
+	}
+	archivo.Close()
+	editarArchivo(index, "/users.txt", newTxt)
+
+	fmt.Println("Grupo eliminado con exito con exito")
+
+}
+
+func EjecMkGrp(banderas []string) {
+	name := ""
+	for _, valor := range banderas {
+		dupla := strings.Split(valor, "=")
+
+		if dupla[0] == "-name" {
+			name = dupla[1]
+
+		} else {
+			fmt.Println("Parametro invalido")
+		}
+	}
+
+	if name == "" {
+		fmt.Println("Ingrese el campo -name")
+		return
+	}
+	if uId != 1 {
+		fmt.Println("Solo el usuario root puede crear grupos")
+	}
+
+	index := VerificarParticionMontada(actualIdMount)
+
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	var sblock superBloque
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+
+	var inodoTemp Inodo
+
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		return
+	}
+
+	txt := leerArchivo("/users.txt", archivo, &sblock)
+	nexId := nextIdGroup(txt)
+
+	txt += strconv.Itoa(nexId) + ",G," + name + "\n"
+
+	archivo.Close()
+	editarArchivo(index, "/users.txt", txt)
+
+	fmt.Println("Grupo creado con exito")
+
+}
+
+func EjecRmGrp(banderas []string) {
+	name := ""
+	for _, valor := range banderas {
+		dupla := strings.Split(valor, "=")
+
+		if dupla[0] == "-name" {
+			name = dupla[1]
+
+		} else {
+			fmt.Println("Parametro invalido")
+		}
+	}
+
+	if name == "" {
+		fmt.Println("Ingrese el campo -name")
+		return
+	}
+
+	if uId != 1 {
+		fmt.Println("Solo el usuario root puede eliminar grupos")
+	}
+
+	index := VerificarParticionMontada(actualIdMount)
+
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	var sblock superBloque
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+
+	var inodoTemp Inodo
+
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		return
+	}
+
+	txt := leerArchivo("/users.txt", archivo, &sblock)
+
+	lineas := strings.Split(txt, "\n")
+	lineas = lineas[:len(lineas)-1]
+
+	band := false
+	for i, linea := range lineas {
+
+		if linea[2] == 'G' && linea[0] != '0' {
+			campos := strings.Split(linea, ",")
+			if campos[2] == name {
+				nuevaLinea := []byte(linea)
+				nuevaLinea[0] = '0'
+				lineas[i] = string(nuevaLinea)
+				band = true
+				break
+
+			}
+		}
+
+	}
+	newTxt := ""
+	for _, linea := range lineas {
+
+		newTxt += linea + "\n"
+
+	}
+
+	if !band {
+		fmt.Println("No se encontro el grupo")
+		return
+	}
+	archivo.Close()
+	editarArchivo(index, "/users.txt", newTxt)
+
+	fmt.Println("Grupo eliminado con exito con exito")
+
+}
+
+func nextIdUser(txt string) int {
+
+	lineas := strings.Split(txt, "\n")
+	id := 1
+
+	lineas = lineas[:len(lineas)-1]
+
+	var numTemp int
+	for _, linea := range lineas {
+		if linea[2] == 'U' {
+			numTemp, _ = strconv.Atoi(string(linea[0]))
+			if numTemp > id {
+				id = numTemp
+			}
+
+		}
+	}
+
+	return id + 1
+
+}
+
+func nextIdGroup(txt string) int {
+
+	lineas := strings.Split(txt, "\n")
+	id := 1
+
+	lineas = lineas[:len(lineas)-1]
+
+	var numTemp int
+	for _, linea := range lineas {
+		if linea[2] == 'G' {
+			numTemp, _ = strconv.Atoi(string(linea[0]))
+			if numTemp > id {
+				id = numTemp
+			}
+
+		}
+	}
+
+	return id + 1
+
+}
+
+func eliminarBloquesInodo(numInodo int, sblock *superBloque, archivo *os.File) {
+	var inodoTemp Inodo
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))*int32(numInodo)), 0)
+	err := binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		return
+	}
+
+	for i, ptr := range inodoTemp.I_block {
+		if ptr != -1 {
+			eliminarBloque(int(ptr), sblock, archivo)
+			inodoTemp.I_block[i] = -1
+		}
+	}
+
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(inodo{}))*int32(numInodo)), 0)
+	err = binary.Write(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al escribir el inodo: ", err)
+		return
+	}
+}
+
+func eliminarBloque(ptr int, sblock *superBloque, archivo *os.File) {
+	bufer := make([]byte, 64)
+
+	archivo.Seek(int64(sblock.S_block_start+int32(binary.Size(bloqueArchivos{}))*int32(ptr)), 0)
+	err := binary.Write(archivo, binary.LittleEndian, &bufer)
+	if err != nil {
+		fmt.Println("Error al eliminar el bloque: ", err)
+		return
+	}
+
+	archivo.Seek(int64(sblock.S_bm_block_start+int32(ptr)), 0)
+	err = binary.Write(archivo, binary.LittleEndian, [1]byte{0})
+	if err != nil {
+		fmt.Println("Error al eliminar el bitmap Bloque: ", err)
+		return
+	}
+	sblock.S_free_blocks_count++
+
+	sblock.S_first_blo = get_siguienteBloqueLibre(archivo, sblock)
+}
+
 func leerArchivo(ruta string, archivo *os.File, sblock *superBloque) string {
 
 	lRuta := strings.Split(ruta[1:], "/")
