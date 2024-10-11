@@ -1325,6 +1325,7 @@ func editarArchivo(index int, ruta string, cont string) {
 	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
+		Salida_comando += "Error al abrir el archivo\n"
 		return
 	}
 	defer archivo.Close()
@@ -1335,6 +1336,7 @@ func editarArchivo(index int, ruta string, cont string) {
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
+		Salida_comando += "Error al leer el superbloque\n"
 		return
 	}
 
@@ -1354,6 +1356,7 @@ func editarArchivo(index int, ruta string, cont string) {
 	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
 		return
 	}
 
@@ -1361,10 +1364,11 @@ func editarArchivo(index int, ruta string, cont string) {
 	escribir_archivo(archivo, &sblock, &inodoTemp, cont)
 	inodoTemp.I_s = int32(len(cont))
 
-	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(inodo{}))*int32(numInodo)), 0)
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))*int32(numInodo)), 0)
 	err = binary.Write(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al escribir el inodo: ", err)
+		Salida_comando += "Error al escribir el inodo\n"
 		return
 	}
 
@@ -1372,6 +1376,7 @@ func editarArchivo(index int, ruta string, cont string) {
 	err = binary.Write(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al escribir el superbloque: ", err)
+		Salida_comando += "Error al escribir el superbloque\n"
 		return
 	}
 
@@ -1397,26 +1402,31 @@ func EjecMkUsr(banderas []string) {
 
 		} else {
 			fmt.Println("Parametro invalido")
+			Salida_comando += "Parametro invalido\n"
 		}
 	}
 
 	if name == "" {
 		fmt.Println("Ingrese el campo -name")
+		Salida_comando += "No se ingreso el campo -name\n"
 		return
 	}
 
 	if pass == "" {
 		fmt.Println("Ingrese el campo -pass")
+		Salida_comando += "No se ingreso el campo -pass\n"
 		return
 	}
 
 	if group == "" {
 		fmt.Println("Ingrese el campo -grp")
+		Salida_comando += "No se ingreso el campo -grp\n"
 		return
 	}
 
 	if uId != 1 {
 		fmt.Println("Solo el usuario root puede crear usuarios")
+		Salida_comando += "Solo el usuario root puede crear usuarios\n"
 	}
 
 	index := VerificarParticionMontada(actualIdMount)
@@ -1424,6 +1434,7 @@ func EjecMkUsr(banderas []string) {
 	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
+		Salida_comando += "Error al abrir el disco\n"
 		return
 	}
 	defer archivo.Close()
@@ -1434,6 +1445,7 @@ func EjecMkUsr(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
+		Salida_comando += "Error al leer el superbloque\n"
 		return
 	}
 
@@ -1443,6 +1455,7 @@ func EjecMkUsr(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
 		return
 	}
 
@@ -1454,7 +1467,8 @@ func EjecMkUsr(banderas []string) {
 	archivo.Close()
 	editarArchivo(index, "/users.txt", txt)
 
-	fmt.Println("Grupo creado con exito")
+	fmt.Println("Usuario creado con exito")
+	Salida_comando += "Usuario creado con exito\n"
 
 }
 
@@ -1468,16 +1482,19 @@ func EjecRmUsr(banderas []string) {
 
 		} else {
 			fmt.Println("Parametro invalido")
+			Salida_comando += "Parametro invalido\n"
 		}
 	}
 
 	if name == "" {
 		fmt.Println("Ingrese el campo -name")
+		Salida_comando += "No se ingreso el campo -name\n"
 		return
 	}
 
 	if uId != 1 {
 		fmt.Println("Solo el usuario root puede eliminar usuarios")
+		Salida_comando += "Solo el usuario root puede eliminar usuarios\n"
 	}
 
 	index := VerificarParticionMontada(actualIdMount)
@@ -1485,6 +1502,7 @@ func EjecRmUsr(banderas []string) {
 	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
+		Salida_comando += "Error al abrir el disco\n"
 		return
 	}
 	defer archivo.Close()
@@ -1495,6 +1513,7 @@ func EjecRmUsr(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
+		Salida_comando += "Error al leer el superbloque\n"
 		return
 	}
 
@@ -1504,6 +1523,7 @@ func EjecRmUsr(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
 		return
 	}
 
@@ -1538,12 +1558,14 @@ func EjecRmUsr(banderas []string) {
 
 	if !band {
 		fmt.Println("No se encontro el Usuario")
+		Salida_comando += "No se encontro el Usuario\n"
 		return
 	}
 	archivo.Close()
 	editarArchivo(index, "/users.txt", newTxt)
 
-	fmt.Println("Grupo eliminado con exito con exito")
+	fmt.Println("Usuario eliminado con exito")
+	Salida_comando += "Usuario eliminado con exito \n"
 
 }
 
@@ -1557,15 +1579,18 @@ func EjecMkGrp(banderas []string) {
 
 		} else {
 			fmt.Println("Parametro invalido")
+			Salida_comando += "Parametro invalido\n"
 		}
 	}
 
 	if name == "" {
 		fmt.Println("Ingrese el campo -name")
+		Salida_comando += "No se ingreso el campo -name\n"
 		return
 	}
 	if uId != 1 {
 		fmt.Println("Solo el usuario root puede crear grupos")
+		Salida_comando += "Solo el usuario root puede crear grupos\n"
 	}
 
 	index := VerificarParticionMontada(actualIdMount)
@@ -1573,6 +1598,7 @@ func EjecMkGrp(banderas []string) {
 	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
+		Salida_comando += "Error al abrir el disco\n"
 		return
 	}
 	defer archivo.Close()
@@ -1583,6 +1609,7 @@ func EjecMkGrp(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
+		Salida_comando += "Error al leer el superbloque\n"
 		return
 	}
 
@@ -1592,6 +1619,7 @@ func EjecMkGrp(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
 		return
 	}
 
@@ -1604,6 +1632,7 @@ func EjecMkGrp(banderas []string) {
 	editarArchivo(index, "/users.txt", txt)
 
 	fmt.Println("Grupo creado con exito")
+	Salida_comando += "Grupo creado con exito\n"
 
 }
 
@@ -1617,16 +1646,19 @@ func EjecRmGrp(banderas []string) {
 
 		} else {
 			fmt.Println("Parametro invalido")
+			Salida_comando += "Parametro invalido\n"
 		}
 	}
 
 	if name == "" {
 		fmt.Println("Ingrese el campo -name")
+		Salida_comando += "No se ingreso el campo -name\n"
 		return
 	}
 
 	if uId != 1 {
 		fmt.Println("Solo el usuario root puede eliminar grupos")
+		Salida_comando += "Solo el usuario root puede eliminar grupos\n"
 	}
 
 	index := VerificarParticionMontada(actualIdMount)
@@ -1634,6 +1666,7 @@ func EjecRmGrp(banderas []string) {
 	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
+		Salida_comando += "Error al abrir el disco\n"
 		return
 	}
 	defer archivo.Close()
@@ -1644,6 +1677,7 @@ func EjecRmGrp(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
+		Salida_comando += "Error al leer el superbloque\n"
 		return
 	}
 
@@ -1653,6 +1687,7 @@ func EjecRmGrp(banderas []string) {
 	err = binary.Read(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
 		return
 	}
 
@@ -1686,12 +1721,14 @@ func EjecRmGrp(banderas []string) {
 
 	if !band {
 		fmt.Println("No se encontro el grupo")
+		Salida_comando += "No se encontro el grupo\n"
 		return
 	}
 	archivo.Close()
 	editarArchivo(index, "/users.txt", newTxt)
 
-	fmt.Println("Grupo eliminado con exito con exito")
+	fmt.Println("Grupo eliminado con exito")
+	Salida_comando += "Grupo eliminado con exito\n"
 
 }
 
@@ -1745,6 +1782,7 @@ func eliminarBloquesInodo(numInodo int, sblock *superBloque, archivo *os.File) {
 	err := binary.Read(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
 		return
 	}
 
@@ -1755,10 +1793,11 @@ func eliminarBloquesInodo(numInodo int, sblock *superBloque, archivo *os.File) {
 		}
 	}
 
-	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(inodo{}))*int32(numInodo)), 0)
+	archivo.Seek(int64(sblock.S_inode_start+int32(binary.Size(Inodo{}))*int32(numInodo)), 0)
 	err = binary.Write(archivo, binary.LittleEndian, &inodoTemp)
 	if err != nil {
 		fmt.Println("Error al escribir el inodo: ", err)
+		Salida_comando += "Error al escribir el inodo\n"
 		return
 	}
 }
@@ -1770,6 +1809,7 @@ func eliminarBloque(ptr int, sblock *superBloque, archivo *os.File) {
 	err := binary.Write(archivo, binary.LittleEndian, &bufer)
 	if err != nil {
 		fmt.Println("Error al eliminar el bloque: ", err)
+		Salida_comando += "Error al eliminar el bloque\n"
 		return
 	}
 
@@ -1777,6 +1817,7 @@ func eliminarBloque(ptr int, sblock *superBloque, archivo *os.File) {
 	err = binary.Write(archivo, binary.LittleEndian, [1]byte{0})
 	if err != nil {
 		fmt.Println("Error al eliminar el bitmap Bloque: ", err)
+		Salida_comando += "Error al eliminar el bitmap Bloque\n"
 		return
 	}
 	sblock.S_free_blocks_count++

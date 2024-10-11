@@ -79,6 +79,18 @@ func ejecutarComando(comando []string, banderas []string) {
 	case "mkfile":
 		comandos.EjecutarMkfile(banderas)
 		break
+	case "mkgrp":
+		comandos.EjecMkGrp(banderas)
+		break
+	case "rmgrp":
+		comandos.EjecRmGrp(banderas)
+		break
+	case "mkusr":
+		comandos.EjecMkUsr(banderas)
+		break
+	case "rmusr":
+		comandos.EjecRmUsr(banderas)
+		break
 
 	case "rep":
 		//fmt.Println("ejecutar rep")

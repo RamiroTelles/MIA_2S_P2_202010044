@@ -17,27 +17,64 @@ login -user=root -pass=123 -id=441a
 
 login -user=root -pass=123 -id=441a #ERR SESION INICIADA
 
-cat -file1=/users.txt 
+#cat -file1=/users.txt 
+
+#CREACION DE GRUPOS ---------------------------------------------
+mkgrp -name=usuarios
+mkgrp -name=adm
+mkgrp -name=mail
+mkgrp -name=news
+mkgrp -name=sys
+#mkgrp -name=sys #ERR YA EXISTE EL GRUPO
+cat -file1=/users.txt
+
+#pause
+#mkdisk -param=x #ERR
+
+#ELIMINANDO GRUPOS------------------------------------------------
+rmgrp -name=mail
+cat -file1=/users.txt
+
+#pause
+#mkdisk -param=x #ERR
+
+#CREACION DE USUARIOS------------------------------------------------
+mkusr -user=usuario1 -pass=password -grp=root
+mkusr -user=user1 -pass=abc -grp=usuarios
+mkusr -user=user2 -pass=abc -grp=usuarios
+#mkusr -user="user2" -pass=abc -grp=usuarios #ERR EL USUARIO YA EXISTE
+#mkusr -user="user3" -pass=abc -grp=system #ERR GRUPO NO EXISTE
+cat -file1=/users.txt
+
+#pause
+#mkdisk -param=x #ERR
+
+#ELIMINANDO USUARIOS------------------------------------------------
+rmusr -user=user2
+cat -file1=/users.txt
+
+#pause
+#mkdisk -param=x #ERR
 
 #CREACION DE CARPETAS------------------------------------------------
-mkdir -path=/bin
-mkdir -path=/boot
-mkdir -path=/cdrom
-mkdir -path=/home
+#mkdir -path=/bin
+#mkdir -path=/boot
+#mkdir -path=/cdrom
+#mkdir -path=/home
 
 
-mkdir -path=/home/archivos
-mkdir -path=/home/archivos/user
-mkdir -path=/home/archivos/user/docs
-mkdir -path=/home/archivos/user/docs/usac
+#mkdir -path=/home/archivos
+#mkdir -path=/home/archivos/user
+#mkdir -path=/home/archivos/user/docs
+#mkdir -path=/home/archivos/user/docs/usac
 
-mkfile -path=/home/archivos/user/docs/Tarea.txt -size=75
-mkfile -path=/home/archivos/user/docs/Tarea2.txt -size=767
+#mkfile -path=/home/archivos/user/docs/Tarea.txt -size=75
+#mkfile -path=/home/archivos/user/docs/Tarea2.txt -size=767
 
-mkfile -path=/home/archivos/user/docs/Tarea3.txt -size=10 -cont=./archivoFIle.txt
+#mkfile -path=/home/archivos/user/docs/Tarea3.txt -size=10 -cont=./archivoFIle.txt
 
-cat -file1=/home/archivos/user/docs/Tarea.txt -file2=/home/archivos/user/docs/Tarea3.txt
-cat -file1=/home/archivos/user/docs/Tarea.txt
+#cat -file1=/home/archivos/user/docs/Tarea.txt -file2=/home/archivos/user/docs/Tarea3.txt
+#cat -file1=/home/archivos/user/docs/Tarea.txt
 
 
 #logout

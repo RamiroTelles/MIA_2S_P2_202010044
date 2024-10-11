@@ -11,228 +11,24 @@ bloque0[shape=none, color=lightgrey, label=<
 <TR><TD bgcolor="lightgrey">.</TD><TD>0</TD></TR>
 <TR><TD bgcolor="lightgrey">..</TD><TD>0</TD></TR>
 <TR><TD bgcolor="lightgrey">users.txt</TD><TD>1</TD></TR>
-<TR><TD bgcolor="lightgrey">bin</TD><TD>2</TD></TR>
+<TR><TD bgcolor="lightgrey"></TD><TD>-1</TD></TR>
 </TABLE>>];
 bloque1[shape=none, color=lightgrey, label=<
 <TABLE cellspacing="3" cellpadding="2" style="rounded" >
 <TR><TD bgcolor="lightgrey" colspan="2">bloque 1</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1,g,root1,u,root,root,123</TD></TR>
+<TR><TD bgcolor="lightgrey" colspan="2">1,g,root1,u,root,root,1232,G,usuarios3,G,adm0,G,mail5,G,new</TD></TR>
 </TABLE>>];
 bloque0 -> bloque1;
 bloque2[shape=none, color=lightgrey, label=<
 <TABLE cellspacing="3" cellpadding="2" style="rounded" >
 <TR><TD bgcolor="lightgrey" colspan="2">bloque 2</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...</TD></TR>
+<TR><TD bgcolor="lightgrey" colspan="2">s6,G,sys2,U,root,usuario1,password3,U,usuarios,user1,abc0,U,</TD></TR>
 </TABLE>>];
 bloque1 -> bloque2;
 bloque3[shape=none, color=lightgrey, label=<
 <TABLE cellspacing="3" cellpadding="2" style="rounded" >
 <TR><TD bgcolor="lightgrey" colspan="2">bloque 3</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">bootcdromhome</TD></TR>
+<TR><TD bgcolor="lightgrey" colspan="2">usuarios,user2,abc</TD></TR>
 </TABLE>>];
 bloque2 -> bloque3;
-bloque4[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 4</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...</TD></TR>
-</TABLE>>];
-bloque3 -> bloque4;
-bloque5[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 5</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...</TD></TR>
-</TABLE>>];
-bloque4 -> bloque5;
-bloque6[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 6</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...archivos</TD></TR>
-</TABLE>>];
-bloque5 -> bloque6;
-bloque7[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 7</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...user</TD></TR>
-</TABLE>>];
-bloque6 -> bloque7;
-bloque8[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 8</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...docs</TD></TR>
-</TABLE>>];
-bloque7 -> bloque8;
-bloque9[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 9</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...usactarea.txt</TD></TR>
-</TABLE>>];
-bloque8 -> bloque9;
-bloque10[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 10</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">...</TD></TR>
-</TABLE>>];
-bloque9 -> bloque10;
-bloque11[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 11</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque10 -> bloque11;
-bloque12[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 12</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">00000000000</TD></TR>
-</TABLE>>];
-bloque11 -> bloque12;
-bloque13[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 13</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">tarea2.txttarea3.txt</TD></TR>
-</TABLE>>];
-bloque12 -> bloque13;
-bloque14[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 14</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque13 -> bloque14;
-bloque15[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 15</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque14 -> bloque15;
-bloque16[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 16</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque15 -> bloque16;
-bloque17[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 17</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque16 -> bloque17;
-bloque18[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 18</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque17 -> bloque18;
-bloque19[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 19</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque18 -> bloque19;
-bloque20[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 20</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque19 -> bloque20;
-bloque21[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 21</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque20 -> bloque21;
-bloque22[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 22</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque21 -> bloque22;
-bloque23[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 23</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque22 -> bloque23;
-bloque24[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 24</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">0000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque23 -> bloque24;
-bloque25[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 25</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">000000000000000000000000000000000000000000000000000000000000000</TD></TR>
-</TABLE>>];
-bloque24 -> bloque25;
-bloque26[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 26</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque25 -> bloque26;
-bloque27[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 27</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque26 -> bloque27;
-bloque28[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 28</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque27 -> bloque28;
-bloque29[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 29</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque28 -> bloque29;
-bloque30[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 30</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque29 -> bloque30;
-bloque31[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 31</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque30 -> bloque31;
-bloque32[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 32</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque31 -> bloque32;
-bloque33[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 33</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque32 -> bloque33;
-bloque34[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 34</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque33 -> bloque34;
-bloque35[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 35</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque34 -> bloque35;
-bloque36[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 36</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">1234567812345678123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque35 -> bloque36;
-bloque37[shape=none, color=lightgrey, label=<
-<TABLE cellspacing="3" cellpadding="2" style="rounded" >
-<TR><TD bgcolor="lightgrey" colspan="2">bloque 37</TD></TR>
-<TR><TD bgcolor="lightgrey" colspan="2">123456781234567812345678123456781234567812345678</TD></TR>
-</TABLE>>];
-bloque36 -> bloque37;
 }
