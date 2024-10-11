@@ -11,7 +11,10 @@ import (
 func main() {
 
 	//analizador.InitApp()
+	//var banderas []string
+	//banderas = append(banderas, "-path=/home/archivos/user/docs/usac/")
 	analizador.Analizar("execute -path=./basico.smia")
+	//comandos.EjecLs(banderas)
 	for {
 		leerComando()
 	}

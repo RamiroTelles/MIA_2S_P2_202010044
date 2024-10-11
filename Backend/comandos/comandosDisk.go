@@ -92,6 +92,11 @@ type bloqueApuntadores struct {
 	B_pointers [16]int32
 }
 
+type LsFile struct {
+	Ls_name string
+	Ls_type int
+}
+
 func EjecutarMkdisk(banderas []string) {
 
 	//Leer Banderas
@@ -906,6 +911,127 @@ func EjecutarCat(banderas []string) {
 
 	archivo.Close()
 
+}
+
+func EjecLs(banderas []string) {
+	ruta := ""
+	for _, valor := range banderas {
+		dupla := strings.Split(valor, "=")
+
+		if dupla[0] == "-path" {
+			ruta = dupla[1]
+
+		} else {
+			fmt.Println("Parametro invalido")
+			Salida_comando += "Parametro invalido\n"
+			return
+		}
+	}
+
+	index := VerificarParticionMontada(actualIdMount)
+	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if err != nil {
+		fmt.Println("Error al abrir el disco: ", err)
+		return
+	}
+	defer archivo.Close()
+
+	var sblock superBloque
+
+	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	err = binary.Read(archivo, binary.LittleEndian, &sblock)
+	if err != nil {
+		fmt.Println("Error al leer el superbloque: ", err)
+		return
+	}
+	datos := obtenerLs(ruta, index, archivo, &sblock)
+
+	fmt.Println(datos)
+
+}
+
+func obtenerLs(ruta string, index int, archivo *os.File, sblock *superBloque) []LsFile {
+	lRuta := strings.Split(ruta[1:], "/")
+	var datos []LsFile
+	//var nombreArchivo []string
+	var numInodo int
+	if len(lRuta) == 1 {
+		numInodo = 0
+		//nombreArchivo = lRuta
+	} else {
+		//nombreArchivo = lRuta[len(lRuta)-1:]
+		lRuta = lRuta[:len(lRuta)-1]
+
+		numInodo = obtenerNumInodo(lRuta, archivo, sblock)
+	}
+
+	if numInodo == -1 {
+		fmt.Println("No encontro la ruta para crear el directorio")
+		Salida_comando += "No encontro la ruta para crear el directorio\n"
+		return nil
+	}
+
+	despTemp := int(sblock.S_inode_start) + numInodo*(binary.Size(Inodo{}))
+
+	var inodoTemp Inodo
+	//var bloqueCarpetaTemp bloqueCarpeta
+	archivo.Seek(int64(despTemp), 0)
+	err := binary.Read(archivo, binary.LittleEndian, &inodoTemp)
+	if err != nil {
+		fmt.Println("Error al leer el inodo: ", err)
+		Salida_comando += "Error al leer el inodo\n"
+		return nil
+	}
+
+	for i, ptr := range inodoTemp.I_block {
+
+		if ptr != -1 {
+			if i == 12 {
+				//apuntador simple
+				return datos
+			} else if i == 13 {
+				//apuntador doble
+				return datos
+			} else if i == 14 {
+				//apuntador triple
+				return datos
+			} else {
+				//Directo
+				datoTemp := leerBloqueCarpeta_directo(int(ptr), archivo, sblock)
+				datos = append(datos, datoTemp...)
+			}
+		}
+	}
+	return datos
+}
+
+func leerBloqueCarpeta_directo(numBloque int, archivo *os.File, sblock *superBloque) []LsFile {
+
+	var datos []LsFile
+	var tipoTemp int
+	var bloqueTemp bloqueCarpeta
+
+	despTemp := sblock.S_block_start + (int32(numBloque) * int32(binary.Size(bloqueArchivos{})))
+	archivo.Seek(int64(despTemp), 0)
+	err := binary.Read(archivo, binary.LittleEndian, &bloqueTemp)
+
+	if err != nil {
+		fmt.Println("Error al leer el bloque de carpetas")
+		Salida_comando += "Error al leer el bloque de carpetas\n"
+		return nil
+	}
+
+	for _, cont := range bloqueTemp.B_content {
+		if cont.B_inodo != -1 {
+			if strings.Contains(string(cont.B_name[:]), ".") {
+				tipoTemp = 3
+			} else {
+				tipoTemp = 2
+			}
+			datos = append(datos, LsFile{strings.TrimRight(string(cont.B_name[:]), string(rune(0))), tipoTemp})
+		}
+	}
+	return datos
 }
 
 func EjecutarMkdir(banderas []string) {
