@@ -93,8 +93,8 @@ type bloqueApuntadores struct {
 }
 
 type LsFile struct {
-	Ls_name string
-	Ls_type int
+	Ls_name string `json:"ls_name"`
+	Ls_type int    `json:"ls_type"`
 }
 
 func EjecutarMkdisk(banderas []string) {
@@ -250,6 +250,7 @@ func EjecutarMkdisk(banderas []string) {
 	fmt.Println("Disco creado con exito")
 	Salida_comando += "Disco creado con exito\n"
 
+	PathDiscos = append(PathDiscos, path)
 	archivo.Close()
 
 }
@@ -289,6 +290,7 @@ func EjecutarRmdisk(banderas []string) {
 	//disco eliminado con exito
 	fmt.Println("Disco eliminado con exito")
 	Salida_comando += "Disco eliminado con exito\n"
+	EliminarPathDisco(path)
 }
 
 func EjecutarFdisk(banderas []string) {
@@ -629,7 +631,7 @@ func EjecutarMount(banderas []string) {
 	disk.Mbr_partitions[numPart].Part_status = [1]byte{'1'}
 	copy(disk.Mbr_partitions[numPart].Part_id[:], id)
 
-	particionesMontadas = append(particionesMontadas, newMount)
+	ParticionesMontadas = append(ParticionesMontadas, newMount)
 
 	archivo.Seek(int64(0), 0)
 	binary.Write(archivo, binary.LittleEndian, &disk)
@@ -643,13 +645,13 @@ func EjecutarMount(banderas []string) {
 
 func EjecutarLMount() {
 
-	if len(particionesMontadas) == 0 {
+	if len(ParticionesMontadas) == 0 {
 		fmt.Println("no hay particiones montadas")
 		Salida_comando += "no hay particiones montadas\n"
 		return
 	}
 
-	for _, mounts := range particionesMontadas {
+	for _, mounts := range ParticionesMontadas {
 		fmt.Println("--------------------------------------------------------")
 		Salida_comando += "-----------------------------------------------------------\n"
 		fmt.Print("Id: ")
@@ -722,7 +724,7 @@ func EjecutarLogin(banderas []string) {
 		return
 	}
 
-	if uId != -1 {
+	if UId != -1 {
 		fmt.Println("Ya hay una sesion iniciada")
 		Salida_comando += "Ya hay una sesion iniciada\n"
 		return
@@ -731,7 +733,13 @@ func EjecutarLogin(banderas []string) {
 
 	index := VerificarParticionMontada(id)
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	if index == -1 {
+		fmt.Println("Id no reconocida al loguearse")
+		Salida_comando += "Id no reconocida al loguearse"
+		return
+	}
+
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -742,7 +750,7 @@ func EjecutarLogin(banderas []string) {
 	//var inodoTemp Inodo
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -766,7 +774,7 @@ func EjecutarLogin(banderas []string) {
 		if linea[2] == 'u' && linea[0] != '0' {
 			campos := strings.Split(linea, ",")
 			if campos[3] == user && campos[4] == pass {
-				uId, _ = strconv.Atoi(campos[0])
+				UId, _ = strconv.Atoi(campos[0])
 				nombreGrupo = campos[2]
 				break
 
@@ -785,11 +793,11 @@ func EjecutarLogin(banderas []string) {
 		if linea[2] == 'g' {
 			campos := strings.Split(linea, ",")
 			if campos[2] == nombreGrupo {
-				gId, _ = strconv.Atoi(campos[0])
+				GId, _ = strconv.Atoi(campos[0])
 				if linea[0] == '0' {
 					fmt.Println("Grupo no encontrado")
-					uId = -1
-					gId = -1
+					UId = -1
+					GId = -1
 					return
 				}
 				break
@@ -801,22 +809,22 @@ func EjecutarLogin(banderas []string) {
 
 	fmt.Println("Usuario Logueado con exito")
 	Salida_comando += "Usuario Logueado con exito\n"
-	fmt.Println("Usuario: " + strconv.Itoa(uId))
-	Salida_comando += "Usuario: " + strconv.Itoa(uId) + "\n"
-	fmt.Println("Grupo: " + strconv.Itoa(gId))
-	Salida_comando += "Grupo: " + strconv.Itoa(gId) + "\n"
-	actualIdMount = id
+	fmt.Println("Usuario: " + strconv.Itoa(UId))
+	Salida_comando += "Usuario: " + strconv.Itoa(UId) + "\n"
+	fmt.Println("Grupo: " + strconv.Itoa(GId))
+	Salida_comando += "Grupo: " + strconv.Itoa(GId) + "\n"
+	ActualIdMount = id
 
 }
 
 func EjecutarLogout() {
-	if uId == -1 {
+	if UId == -1 {
 		fmt.Println("Aun no hay sesion iniciada")
 		return
 	}
-	uId = -1
-	gId = -1
-	actualIdMount = ""
+	UId = -1
+	GId = -1
+	ActualIdMount = ""
 	fmt.Println("Sesion cerrada con Exito")
 }
 
@@ -854,7 +862,7 @@ func EjecutarMkfs(banderas []string) {
 
 	var n int
 
-	n = int(math.Floor(float64(int(particionesMontadas[index].Size)-int(binary.Size(superBloque{}))) / float64(4+int(binary.Size(Inodo{}))+3*int(binary.Size(bloqueArchivos{})))))
+	n = int(math.Floor(float64(int(ParticionesMontadas[index].Size)-int(binary.Size(superBloque{}))) / float64(4+int(binary.Size(Inodo{}))+3*int(binary.Size(bloqueArchivos{})))))
 
 	crearExt2(index, n)
 }
@@ -873,9 +881,9 @@ func EjecutarCat(banderas []string) {
 			Salida_comando += "Parametro invalido\n"
 		}
 	}
-	index := VerificarParticionMontada(actualIdMount)
+	index := VerificarParticionMontada(ActualIdMount)
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -886,7 +894,7 @@ func EjecutarCat(banderas []string) {
 	//var inodoTemp Inodo
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -913,7 +921,7 @@ func EjecutarCat(banderas []string) {
 
 }
 
-func EjecLs(banderas []string) {
+func EjecLs(banderas []string) []LsFile {
 	ruta := ""
 	for _, valor := range banderas {
 		dupla := strings.Split(valor, "=")
@@ -924,29 +932,29 @@ func EjecLs(banderas []string) {
 		} else {
 			fmt.Println("Parametro invalido")
 			Salida_comando += "Parametro invalido\n"
-			return
+			return nil
 		}
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	index := VerificarParticionMontada(ActualIdMount)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
-		return
+		return nil
 	}
 	defer archivo.Close()
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
-		return
+		return nil
 	}
 	datos := obtenerLs(ruta, index, archivo, &sblock)
 
-	fmt.Println(datos)
+	return datos
 
 }
 
@@ -1054,8 +1062,8 @@ func EjecutarMkdir(banderas []string) {
 		fmt.Println(p)
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	index := VerificarParticionMontada(ActualIdMount)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		return
@@ -1064,7 +1072,7 @@ func EjecutarMkdir(banderas []string) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -1120,7 +1128,7 @@ func EjecutarMkfile(banderas []string) {
 		return
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
+	index := VerificarParticionMontada(ActualIdMount)
 
 	crearArchivo(ruta, cont, r, index)
 
@@ -1159,8 +1167,8 @@ func crearDirectorio(ruta string, index int, archivo *os.File, sblock *superBloq
 
 	var newInodo Inodo
 
-	newInodo.I_uid = int32(uId)
-	newInodo.I_gid = int32(gId)
+	newInodo.I_uid = int32(UId)
+	newInodo.I_gid = int32(GId)
 	newInodo.I_s = int32(0)
 
 	fechaActual := time.Now()
@@ -1193,7 +1201,7 @@ func crearDirectorio(ruta string, index int, archivo *os.File, sblock *superBloq
 	escribir_nuevoBloque_c(archivo, sblock, &newBloqueCarpeta)
 	escribir_nuevoInodo(archivo, sblock, &newInodo)
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err := binary.Write(archivo, binary.LittleEndian, sblock)
 	if err != nil {
 		fmt.Println("Error al escribir el superbloque: ", err)
@@ -1208,16 +1216,16 @@ func crearDirectorio(ruta string, index int, archivo *os.File, sblock *superBloq
 }
 
 func crearExt2(index int, n int) {
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco \n"
 		return
 	}
 	defer archivo.Close()
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 
-	// for i := int32(0); i < particionesMontadas[index].Size; i++ {
+	// for i := int32(0); i < ParticionesMontadas[index].Size; i++ {
 
 	// 	err := binary.Write(archivo, binary.LittleEndian, [1]byte{0})
 	// 	if err != nil {
@@ -1234,7 +1242,7 @@ func crearExt2(index int, n int) {
 	var totalBytes int = 0
 
 	//Escribe 0s en archivo
-	for totalBytes < int(particionesMontadas[index].Size) {
+	for totalBytes < int(ParticionesMontadas[index].Size) {
 		c, err := archivo.Write(bufer.Bytes())
 		if err != nil {
 			fmt.Println("Error al escribir en el archivo: ", err)
@@ -1244,8 +1252,8 @@ func crearExt2(index int, n int) {
 		totalBytes += c
 	}
 
-	if totalBytes != int(particionesMontadas[index].Size) {
-		for i := totalBytes; i < int(particionesMontadas[index].Size); i++ {
+	if totalBytes != int(ParticionesMontadas[index].Size) {
+		for i := totalBytes; i < int(ParticionesMontadas[index].Size); i++ {
 
 			err := binary.Write(archivo, binary.LittleEndian, [1]byte{0})
 			if err != nil {
@@ -1258,7 +1266,7 @@ func crearExt2(index int, n int) {
 	var sbloque superBloque
 
 	sbloque.S_filesystem_type = 2
-	sbloque.S_bm_inode_start = int32(particionesMontadas[index].Size) + int32(binary.Size(superBloque{}))
+	sbloque.S_bm_inode_start = int32(ParticionesMontadas[index].Size) + int32(binary.Size(superBloque{}))
 	sbloque.S_bm_block_start = sbloque.S_bm_inode_start + int32(n)
 	sbloque.S_inode_start = sbloque.S_bm_block_start + int32(3*n)
 	sbloque.S_block_start = sbloque.S_inode_start + int32(n*int(binary.Size(Inodo{})))
@@ -1341,7 +1349,7 @@ func crearExt2(index int, n int) {
 		return
 	}
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Write(archivo, binary.LittleEndian, &sbloque)
 	if err != nil {
 		fmt.Println("Error al escribir el superbloque: ", err)
@@ -1351,14 +1359,14 @@ func crearExt2(index int, n int) {
 
 	archivo.Close()
 
-	uId = 1
-	gId = 1
+	UId = 1
+	GId = 1
 
 	//creo archivo users.txt
 	crearArchivo("/users.txt", "1,g,root\n1,u,root,root,123\n", false, index)
 
-	uId = -1
-	gId = -1
+	UId = -1
+	GId = -1
 
 	fmt.Println("EXT2 creado con exito")
 	Salida_comando += "EXT2 creado con exito\n"
@@ -1366,7 +1374,7 @@ func crearExt2(index int, n int) {
 
 func crearArchivo(ruta string, cont string, r bool, index int) {
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -1376,7 +1384,7 @@ func crearArchivo(ruta string, cont string, r bool, index int) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -1411,8 +1419,8 @@ func crearArchivo(ruta string, cont string, r bool, index int) {
 
 	var newInodo Inodo
 
-	newInodo.I_uid = int32(uId)
-	newInodo.I_gid = int32(gId)
+	newInodo.I_uid = int32(UId)
+	newInodo.I_gid = int32(GId)
 	newInodo.I_s = int32(len(cont))
 
 	fechaActual := time.Now()
@@ -1436,7 +1444,7 @@ func crearArchivo(ruta string, cont string, r bool, index int) {
 	//sblock.S_firts_ino = get_siguienteInodoLibre(archivo, &sblock)
 	//sblock.S_free_inodes_count--
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Write(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al escribir el superbloque: ", err)
@@ -1448,7 +1456,7 @@ func crearArchivo(ruta string, cont string, r bool, index int) {
 }
 
 func editarArchivo(index int, ruta string, cont string) {
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el archivo\n"
@@ -1458,7 +1466,7 @@ func editarArchivo(index int, ruta string, cont string) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -1498,7 +1506,7 @@ func editarArchivo(index int, ruta string, cont string) {
 		return
 	}
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Write(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al escribir el superbloque: ", err)
@@ -1550,14 +1558,14 @@ func EjecMkUsr(banderas []string) {
 		return
 	}
 
-	if uId != 1 {
+	if UId != 1 {
 		fmt.Println("Solo el usuario root puede crear usuarios")
 		Salida_comando += "Solo el usuario root puede crear usuarios\n"
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
+	index := VerificarParticionMontada(ActualIdMount)
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -1567,7 +1575,7 @@ func EjecMkUsr(banderas []string) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -1618,14 +1626,14 @@ func EjecRmUsr(banderas []string) {
 		return
 	}
 
-	if uId != 1 {
+	if UId != 1 {
 		fmt.Println("Solo el usuario root puede eliminar usuarios")
 		Salida_comando += "Solo el usuario root puede eliminar usuarios\n"
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
+	index := VerificarParticionMontada(ActualIdMount)
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -1635,7 +1643,7 @@ func EjecRmUsr(banderas []string) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -1714,14 +1722,14 @@ func EjecMkGrp(banderas []string) {
 		Salida_comando += "No se ingreso el campo -name\n"
 		return
 	}
-	if uId != 1 {
+	if UId != 1 {
 		fmt.Println("Solo el usuario root puede crear grupos")
 		Salida_comando += "Solo el usuario root puede crear grupos\n"
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
+	index := VerificarParticionMontada(ActualIdMount)
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -1731,7 +1739,7 @@ func EjecMkGrp(banderas []string) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -1782,14 +1790,14 @@ func EjecRmGrp(banderas []string) {
 		return
 	}
 
-	if uId != 1 {
+	if UId != 1 {
 		fmt.Println("Solo el usuario root puede eliminar grupos")
 		Salida_comando += "Solo el usuario root puede eliminar grupos\n"
 	}
 
-	index := VerificarParticionMontada(actualIdMount)
+	index := VerificarParticionMontada(ActualIdMount)
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -1799,7 +1807,7 @@ func EjecRmGrp(banderas []string) {
 
 	var sblock superBloque
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -2605,7 +2613,7 @@ func get_siguienteBloqueLibre(archivo *os.File, sblock *superBloque) int32 {
 }
 
 func RepMbr(index int, path string) {
-	archivo, err := os.Open(particionesMontadas[index].Path)
+	archivo, err := os.Open(ParticionesMontadas[index].Path)
 
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
@@ -2695,7 +2703,7 @@ func RepMbr(index int, path string) {
 }
 
 func RepDisk(index int, path string) {
-	archivo, err := os.Open(particionesMontadas[index].Path)
+	archivo, err := os.Open(ParticionesMontadas[index].Path)
 
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
@@ -2812,7 +2820,7 @@ func RepDisk(index int, path string) {
 
 func RepBmInodos(index int, path string) {
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -2822,7 +2830,7 @@ func RepBmInodos(index int, path string) {
 
 	bitmap := ""
 	var sblock superBloque
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -2857,7 +2865,7 @@ func RepBmInodos(index int, path string) {
 
 func RepBmBloques(index int, path string) {
 
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0777)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0777)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -2867,7 +2875,7 @@ func RepBmBloques(index int, path string) {
 
 	bitmap := ""
 	var sblock superBloque
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -2901,7 +2909,7 @@ func RepBmBloques(index int, path string) {
 }
 
 func RepSb(index int, path string) {
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0664)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0664)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -2910,7 +2918,7 @@ func RepSb(index int, path string) {
 	defer archivo.Close()
 
 	var sblock superBloque
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -2945,7 +2953,7 @@ func RepSb(index int, path string) {
 }
 
 func RepInodos(index int, path string) {
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0664)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0664)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -2954,7 +2962,7 @@ func RepInodos(index int, path string) {
 	defer archivo.Close()
 
 	var sblock superBloque
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -3038,7 +3046,7 @@ func RepInodos(index int, path string) {
 }
 
 func RepBloques(index int, path string) {
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0664)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0664)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		Salida_comando += "Error al abrir el disco\n"
@@ -3047,7 +3055,7 @@ func RepBloques(index int, path string) {
 	defer archivo.Close()
 
 	var sblock superBloque
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	err = binary.Read(archivo, binary.LittleEndian, &sblock)
 	if err != nil {
 		fmt.Println("Error al leer el superbloque: ", err)
@@ -3119,14 +3127,14 @@ func RepBloques(index int, path string) {
 func RepTree(index int, path string) {
 
 	//Abrir el disco
-	archivo, err := os.OpenFile(particionesMontadas[index].Path, os.O_RDWR, 0664)
+	archivo, err := os.OpenFile(ParticionesMontadas[index].Path, os.O_RDWR, 0664)
 	if err != nil {
 		fmt.Println("Error al abrir el disco: ", err)
 		return
 	}
 	defer archivo.Close()
 
-	archivo.Seek(int64(particionesMontadas[index].Start), 0)
+	archivo.Seek(int64(ParticionesMontadas[index].Start), 0)
 	//Leer el superbloque
 	var sb superBloque
 	err = binary.Read(archivo, binary.LittleEndian, &sb)

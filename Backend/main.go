@@ -10,14 +10,22 @@ import (
 
 func main() {
 
-	//analizador.InitApp()
 	//var banderas []string
 	//banderas = append(banderas, "-path=/home/archivos/user/docs/usac/")
-	analizador.Analizar("execute -path=./basico.smia")
+
+	//analizador.Analizar("execute -path=./pruebas.smia")
+
+	// var banderas []string
+	// banderas = append(banderas, "-user=root")
+	// banderas = append(banderas, "-pass=123")
+	// banderas = append(banderas, "-id=441a")
+	// fmt.Println(banderas)
+	// comandos.EjecutarLogin(banderas)
 	//comandos.EjecLs(banderas)
-	for {
-		leerComando()
-	}
+	analizador.InitApp()
+	// for {
+	// 	leerComando()
+	// }
 
 	// dir, err := filepath.Abs("./carpeta/disco2.dsk")
 

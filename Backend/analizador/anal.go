@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/rs/cors"
@@ -273,6 +274,18 @@ type Cmd_API struct {
 	Cmd string `json:"cmd"`
 }
 
+type login_request struct {
+	User string `json:"user"`
+	Pass string `json:"pass"`
+	Id   string `json:"id"`
+}
+
+type ls_request struct {
+	PathDisco       string `json:"pathDisco"`
+	NombreParticion string `json:"nombreParticion"`
+	Path            string `json:"path"`
+}
+
 func InitApp() {
 	fmt.Println("API Backend Proyecto 1 Archivos")
 	comandos.Salida_comando = ""
@@ -315,6 +328,154 @@ func InitApp() {
 		comandos.Salida_comando = ""
 	})
 
+	mux.HandleFunc("/getLogin", func(w http.ResponseWriter, r *http.Request) {
+		// Configuracion de la cabecera
+		w.Header().Set("Content-Type", "application/json")
+
+		// Respuesta del servidor
+		result := validar_Login()
+
+		//fmt.Println("----------------")
+		//fmt.Println(comandosUsados)
+		response := map[string]string{
+			"resultado": strconv.FormatBool(result),
+		}
+
+		// Convertir el mapa a JSON y enviarlo como respuesta
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Error al crear respuesta JSON", http.StatusInternalServerError)
+			return
+		}
+		if result {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusForbidden)
+		}
+
+		w.Write(jsonResponse)
+
+		// Limpio la salida de comandos
+		comandos.Salida_comando = ""
+	})
+
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		// Configuracion de la cabecera
+		w.Header().Set("Content-Type", "application/json")
+		var Content login_request
+		body, _ := io.ReadAll(r.Body)
+
+		json.Unmarshal(body, &Content)
+
+		var banderas []string
+		banderas = append(banderas, "-user="+Content.User)
+		banderas = append(banderas, "-pass="+Content.Pass)
+		banderas = append(banderas, "-id="+Content.Id)
+		fmt.Println(banderas)
+		comandos.EjecutarLogin(banderas)
+
+		result := validar_Login()
+		//fmt.Println("----------------")
+		//fmt.Println(comandosUsados)
+		response := map[string]string{
+			"resultado": strconv.FormatBool(result),
+		}
+
+		// Convertir el mapa a JSON y enviarlo como respuesta
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Error al crear respuesta JSON", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+
+		w.Write(jsonResponse)
+
+		// Limpio la salida de comandos
+		comandos.Salida_comando = ""
+	})
+
+	mux.HandleFunc("/restartValues", func(w http.ResponseWriter, r *http.Request) {
+
+		// Configuracion de la cabecera
+		w.Header().Set("Content-Type", "application/json")
+
+		comandos.RestartValues()
+		fmt.Println("Se reiniciaron los valores")
+		//fmt.Println("----------------")
+		//fmt.Println(comandosUsados)
+		response := map[string]string{
+			"resultado": strconv.FormatBool(true),
+		}
+
+		// Convertir el mapa a JSON y enviarlo como respuesta
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Error al crear respuesta JSON", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+
+		w.Write(jsonResponse)
+
+		// Limpio la salida de comandos
+		comandos.Salida_comando = ""
+	})
+
+	mux.HandleFunc("/ls", func(w http.ResponseWriter, r *http.Request) {
+		// Configuracion de la cabecera
+		w.Header().Set("Content-Type", "application/json")
+		var Content ls_request
+		body, _ := io.ReadAll(r.Body)
+		// Arreglo  de bytes a Json
+		//fmt.Println(string(body))
+		json.Unmarshal(body, &Content)
+		// Ejecuta el comando
+
+		datos := getLs(Content)
+		// Respuesta del servidor
+
+		//fmt.Println("----------------")
+		//fmt.Println(comandosUsados)
+
+		// Convertir el mapa a JSON y enviarlo como respuesta
+		jsonResponse, err := json.Marshal(datos)
+		if err != nil {
+			http.Error(w, "Error al crear respuesta JSON", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+
+		w.Write(jsonResponse)
+
+		// Limpio la salida de comandos
+		comandos.Salida_comando = ""
+	})
+
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		// Configuracion de la cabecera
+		w.Header().Set("Content-Type", "application/json")
+
+		// Arreglo  de bytes a Json
+		comandos.EjecutarLogout()
+
+		response := map[string]string{
+			"result": strconv.FormatBool(true),
+		}
+		// Convertir el mapa a JSON y enviarlo como respuesta
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Error al crear respuesta JSON", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+
+		w.Write(jsonResponse)
+
+		// Limpio la salida de comandos
+		comandos.Salida_comando = ""
+	})
+
 	fmt.Println("Servidor en el puerto 5000")
 	// Configuracion de cors
 	// handler := cors.New(cors.Options{
@@ -326,6 +487,38 @@ func InitApp() {
 
 	handler := cors.Default().Handler(mux)
 	log.Fatal(http.ListenAndServe(":5000", handler))
+}
+
+func validar_Login() bool {
+
+	if comandos.UId != -1 {
+		return true
+	}
+	return false
+
+}
+
+func getLs(content ls_request) []comandos.LsFile {
+
+	if content.PathDisco == "" {
+		return comandos.GetLsDiscos()
+	} else if content.NombreParticion == "" {
+		return comandos.GetLsParticiones(content.PathDisco)
+	} else {
+		index := comandos.VerificarNombreMontado(content.NombreParticion)
+		if index == -1 {
+			return nil
+		}
+		comandos.ActualIdMount = comandos.ParticionesMontadas[index].Id
+		var banderas []string
+		banderas = append(banderas, "-path="+content.Path)
+
+		datos := comandos.EjecLs(banderas)
+
+		datos = datos[2:]
+		return datos
+	}
+
 }
 
 func split_cmd(cont string) {
